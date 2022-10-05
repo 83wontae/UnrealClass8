@@ -24,9 +24,12 @@ AHelloSphere::AHelloSphere()
 
 	ConstructorHelpers::FObjectFinder<UStaticMesh> SphereAsset(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere'"));
 
-	if (SphereAsset.Succeeded())
+	ConstructorHelpers::FObjectFinder<UMaterial> SphereMaterial(TEXT("Material'/Game/StarterContent/Materials/M_Metal_Burnished_Steel.M_Metal_Burnished_Steel'"));
+
+	if (SphereAsset.Succeeded() && SphereMaterial.Succeeded())
 	{
 		SphereVisual->SetStaticMesh(SphereAsset.Object);
+		SphereVisual->SetMaterial(0, SphereMaterial.Object);
 		SphereVisual->SetRelativeLocation(FVector(0.0f, 0.0f, -50.0f));
 	}
 
@@ -54,6 +57,8 @@ AHelloSphere::AHelloSphere()
 	TextRenderComponent->SetVisibility(true);
 	TextRenderComponent->SetText(NSLOCTEXT("AnyNs", "Any", "HelloWorld"));
 
+	OnActorBeginOverlap.AddDynamic(this, &AHelloSphere::MyOnBeginOverlap);
+	OnActorEndOverlap.AddDynamic(this, &AHelloSphere::MyOnEndOverlap);
 }
 
 // Called when the game starts or when spawned
@@ -70,3 +75,14 @@ void AHelloSphere::Tick(float DeltaTime)
 
 }
 
+void AHelloSphere::MyOnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+	FString outputString;
+	outputString = "Hello " + OtherActor->GetName() + "!";
+	TextRenderComponent->SetText(FText::FromString(outputString));
+}
+
+void AHelloSphere::MyOnEndOverlap(AActor* OverlappedActor, AActor* OtherActor)
+{
+	TextRenderComponent->SetText(NSLOCTEXT("AnyNs", "Any", "HelloWorld"));
+}

@@ -25,4 +25,10 @@ public:
 
 protected:
 	class UTextRenderComponent* TextRenderComponent;
+
+	UFUNCTION()
+	void MyOnBeginOverlap(AActor* OverlappedActor, AActor* OtherActor);
+
+	UFUNCTION()
+	void MyOnEndOverlap(AActor* OverlappedActor, AActor* OtherActor);
 };
