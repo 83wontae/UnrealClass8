@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "BountyDash.h"
 #include "GameFramework/Actor.h"
 #include "Floor.generated.h"
 
@@ -23,4 +23,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	float GetKillPoint();
+	float GetSpawnPoint();
+
+protected:
+	UPROPERTY(EditAnywhere)
+	TArray<USceneComponent*> FloorMeshScenes;
+
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMeshComponent*> FloorMeshes;
+
+	UPROPERTY(EditAnywhere)
+	class UBoxComponent* CollisionBox;
+
+	int32 NumRepeatingMesh;
+	float KillPoint;
+	float SpawnPoint;
 };
