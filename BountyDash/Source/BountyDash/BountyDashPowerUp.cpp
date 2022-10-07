@@ -3,6 +3,9 @@
 
 #include "BountyDashPowerUp.h"
 #include "PowerUpObject.h"
+#include "Obstacle.h"
+#include "Components/SphereComponent.h"
+#include "BountyDashCharacter.h"
 
 ABountyDashPowerUp::ABountyDashPowerUp()
 {
@@ -46,4 +49,24 @@ ABountyDashPowerUp::ABountyDashPowerUp()
 
 void ABountyDashPowerUp::MyOnActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
+	if (OtherActor->GetClass()->IsChildOf(AObstacle::StaticClass()))
+	{
+		USphereComponent* otherSphere = Cast<USphereComponent>(OtherActor->GetComponentByClass(USphereComponent::StaticClass()));
+
+		if (otherSphere)
+		{
+			AddActorLocalOffset(FVector(0.0f, 0.0f, 
+				(otherSphere->GetUnscaledSphereRadius()) + Collider->GetUnscaledSphereRadius() * 2));
+		}
+	}
+
+	if (OtherActor->GetClass()->IsChildOf(ABountyDashCharacter::StaticClass()))
+	{
+		ABountyDashCharacter* thisChar = Cast<ABountyDashCharacter>(OtherActor);
+		if (thisChar)
+		{
+			thisChar->PowerUp(PowerUp->GetType());
+			GetWorld()->DestroyActor(this);
+		}
+	}
 }

@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "PowerUpObject.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BountyDashCharacter.generated.h"
@@ -50,13 +51,27 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	int32 Score;
 
+	UPROPERTY(EditAnywhere, Category = PowerUps)
+	float SmashTime;
+
+	UPROPERTY(EditAnywhere, Category = PowerUps)
+	float MagnetTime;
+
+	UPROPERTY(EditAnywhere, Category = PowerUps)
+	float MagnetReach;
+
 private:
 	short CurrentLocation;
 	FVector DesiredLocation;
 	bool bBeingPushed;
 
+	bool CanSmash;
+	bool CanMagnet;
+
 public:
 	void ScoreUp();
+
+	void PowerUp(EPowerUp Type);
 
 protected:
 	void MoveRight();
@@ -67,4 +82,12 @@ protected:
 
 	UFUNCTION()
 	void MyOnComponentEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	void StopSmash();
+
+	UFUNCTION()
+	void StopMagnet();
+
+	void CoinMagnet();
 };

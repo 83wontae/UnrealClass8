@@ -26,7 +26,7 @@ void ACoin::Tick(float DeltaTime)
 
 void ACoin::MyOnActorBeginOverlap(AActor* OverlappedActor, AActor* OtherActor)
 {
-	if (OtherActor->GetClass()->IsChildOf(AObstacle::StaticClass()))
+	if (OtherActor->GetClass()->IsChildOf(AObstacle::StaticClass()) && !BeingPulled)
 	{
 		USphereComponent* thisSphere = 
 			Cast<USphereComponent>(GetComponentByClass(USphereComponent::StaticClass()));

@@ -14,9 +14,10 @@ class BOUNTYDASH_API AObstacle : public ABountyDashObject
 public:	
 	// Sets default values for this actor's properties
 	AObstacle();
+	class UDestructibleComponent* GetDestructable();
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* Mesh;
+	UDestructibleComponent* Mesh;
 
 };

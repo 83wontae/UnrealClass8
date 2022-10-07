@@ -37,3 +37,12 @@ int32 ABountyDashGameModeBase::GetGameLevel()
 {
 	return gameLevel;
 }
+
+void ABountyDashGameModeBase::ReduceGameSpeed()
+{
+	if (gameSpeed > 10.0f)
+	{
+		gameSpeed -= gameSpeedIncrease;
+		gameLevel--;
+	}
+}

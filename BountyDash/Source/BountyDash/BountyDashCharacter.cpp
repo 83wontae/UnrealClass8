@@ -10,6 +10,8 @@
 #include "Engine/TargetPoint.h"
 #include "Obstacle.h"
 #include "BountyDashGameModeBase.h"
+#include "Coin.h"
+#include "DestructibleComponent.h"
 
 // Sets default values
 ABountyDashCharacter::ABountyDashCharacter()
@@ -56,6 +58,10 @@ ABountyDashCharacter::ABountyDashCharacter()
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &ABountyDashCharacter::MyOnComponentEndOverlap);
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+
+	SmashTime = 10.0f;
+	MagnetTime = 10.0f;
+	MagnetReach = 1000;
 }
 
 // Called when the game starts or when spawned
@@ -99,6 +105,11 @@ void ABountyDashCharacter::Tick(float DeltaTime)
 		float moveSpeed = GetCustomGameMode<ABountyDashGameModeBase>(GetWorld())->GetInvGameSpeed();
 		AddActorLocalOffset(FVector(moveSpeed, 0.0f, 0.0f));
 	}
+
+	if (CanMagnet)
+	{
+		CoinMagnet();
+	}
 }
 
 // Called to bind functionality to input
@@ -117,6 +128,35 @@ void ABountyDashCharacter::ScoreUp()
 {
 	Score++;
 	GetCustomGameMode<ABountyDashGameModeBase>(GetWorld())->CharScoreUp(Score);
+}
+
+void ABountyDashCharacter::PowerUp(EPowerUp Type)
+{
+	switch(Type)
+	{
+	case EPowerUp::SPEED:
+		GetCustomGameMode<ABountyDashGameModeBase>(GetWorld())->ReduceGameSpeed();
+		break;
+
+	case EPowerUp::SMASH:
+		{
+			CanSmash = true;
+			FTimerHandle newTimer;
+			GetWorld()->GetTimerManager().SetTimer(newTimer, this, &ABountyDashCharacter::StopSmash, SmashTime, false);
+		}
+		break;
+
+	case EPowerUp::MAGNET:
+		{
+			CanMagnet = true;
+			FTimerHandle newTimer;
+			GetWorld()->GetTimerManager().SetTimer(newTimer, this, &ABountyDashCharacter::StopMagnet, MagnetTime, false);
+		}
+		break;
+
+	default:
+		break;
+	}
 }
 
 void ABountyDashCharacter::MoveRight()
@@ -166,7 +206,15 @@ void ABountyDashCharacter::MyOnComponentBeginOverlap(UPrimitiveComponent* Overla
 
 		if (AngleBetween < 60.0f)
 		{
-			bBeingPushed = true;
+			AObstacle* pObs = Cast<AObstacle>(OtherActor);
+			if (pObs && CanSmash)
+			{
+				pObs->GetDestructable()->ApplyRadiusDamage(10000, GetActorLocation(), 10000, 10000, true);
+			}
+			else
+			{
+				bBeingPushed = true;
+			}
 		}
 	}
 }
@@ -176,6 +224,30 @@ void ABountyDashCharacter::MyOnComponentEndOverlap(UPrimitiveComponent* Overlapp
 	if (OtherActor->GetClass()->IsChildOf(AObstacle::StaticClass()))
 	{
 		bBeingPushed = false;
+	}
+}
+
+void ABountyDashCharacter::StopSmash()
+{
+	CanMagnet = false;
+}
+
+void ABountyDashCharacter::StopMagnet()
+{
+	CanSmash = false;
+}
+
+void ABountyDashCharacter::CoinMagnet()
+{
+	for (TActorIterator<ACoin> coinIter(GetWorld()); coinIter; ++coinIter)
+	{
+		FVector between = GetActorLocation() - coinIter->GetActorLocation();
+		if (FMath::Abs(between.Size()) < MagnetReach)
+		{
+			FVector CoinPos = FMath::Lerp((*coinIter)->GetActorLocation(), GetActorLocation(), 0.2f);
+			(*coinIter)->SetActorLocation(CoinPos);
+			(*coinIter)->BeingPulled = true;
+		}
 	}
 }
 

@@ -7,6 +7,7 @@
 #include "Engine/TargetPoint.h"
 #include "Components/SphereComponent.h"
 #include "Coin.h"
+#include "BountyDashPowerUp.h"
 
 ACoinSpawner::ACoinSpawner()
 {
@@ -20,6 +21,7 @@ ACoinSpawner::ACoinSpawner()
 	CoinSetTimeInterval = 4.0f;
 	CoinTimeInterval = 0.5f;
 	MovermentTImeInterval = 1.0f;
+	PowerUpChance = 30;
 }
 
 void ACoinSpawner::BeginPlay()
@@ -48,25 +50,33 @@ void ACoinSpawner::BeginPlay()
 
 void ACoinSpawner::SpawnCoin()
 {
-	FActorSpawnParameters spawnParams;
-
-	FTransform coinTransform = SpawnTransforms[TargetLoc]->GetTransform();
-
-	coinTransform.SetLocation(FVector(SpawnPoint, coinTransform.GetLocation().Y, coinTransform.GetLocation().Z));
-
-	ACoin* spawnedCoin = GetWorld()->SpawnActor<ACoin>(CoinObject, coinTransform, spawnParams);
-
-	if (spawnedCoin)
+	if (FMath::Rand() % 100 < PowerUpChance)
 	{
-		USphereComponent* coinSphere = Cast<USphereComponent>(spawnedCoin->GetComponentByClass(USphereComponent::StaticClass()));
-
-		if (coinSphere)
-		{
-			float offset = coinSphere->GetUnscaledSphereRadius();
-			spawnedCoin->AddActorLocalOffset(FVector(0.0f, 0.0f, offset));
-		}
-
+		SpawnPowerUp();
 		NumCoinsToSpawn--;
+	}
+	else
+	{
+		FActorSpawnParameters spawnParams;
+
+		FTransform coinTransform = SpawnTransforms[TargetLoc]->GetTransform();
+
+		coinTransform.SetLocation(FVector(SpawnPoint, coinTransform.GetLocation().Y, coinTransform.GetLocation().Z));
+
+		ACoin* spawnedCoin = GetWorld()->SpawnActor<ACoin>(CoinObject, coinTransform, spawnParams);
+
+		if (spawnedCoin)
+		{
+			USphereComponent* coinSphere = Cast<USphereComponent>(spawnedCoin->GetComponentByClass(USphereComponent::StaticClass()));
+
+			if (coinSphere)
+			{
+				float offset = coinSphere->GetUnscaledSphereRadius();
+				spawnedCoin->AddActorLocalOffset(FVector(0.0f, 0.0f, offset));
+			}
+
+			NumCoinsToSpawn--;
+		}
 	}
 
 	if (NumCoinsToSpawn <= 0)
@@ -92,4 +102,26 @@ void ACoinSpawner::SpawnCoinSet()
 void ACoinSpawner::MoveSpawner()
 {
 	TargetLoc = FMath::Rand() % SpawnTransforms.Num();
+}
+
+void ACoinSpawner::SpawnPowerUp()
+{
+	FActorSpawnParameters SpawnInfo;
+
+	FTransform myTrans = SpawnTransforms[TargetLoc]->GetTransform();
+	myTrans.SetLocation(FVector(SpawnPoint, myTrans.GetLocation().Y, myTrans.GetLocation().Z));
+
+	ABountyDashPowerUp* newObs = GetWorld()->SpawnActor<ABountyDashPowerUp>(PowerUpObject, myTrans, SpawnInfo);
+
+	if (newObs)
+	{
+		newObs->SetKillPoint(KillPoint);
+		USphereComponent* powerUpSphere = Cast<USphereComponent>(newObs->GetComponentByClass(USphereComponent::StaticClass()));
+
+		if (powerUpSphere)
+		{
+			float offset = powerUpSphere->GetUnscaledSphereRadius();
+			newObs->AddActorLocalOffset(FVector(0.0f, 0.0f, offset));
+		}
+	}
 }
